@@ -29,11 +29,11 @@ def analyze_freelancer(text):
     job_title = ""
     total_experience_years = 0
     rating = 0
+    soft_skills = ['communication', 'teamwork', 'problem-solving', 'leadership', 'adaptability']
     
-    frontend_languages = ['HTML', 'CSS', 'JavaScript', 'React', 'Angular', 'Vue']
-    backend_languages = ['Python', 'Ruby', 'PHP', 'Node.js', 'Java', 'C#', 'Go']
-    blockchain_languages = ['Solidity', 'Rust', 'C++', 'Vyper', 'Huff', 'Go (Golang)']
-
+    frontend_languages = ['HTML', 'CSS', 'JavaScript', 'React', 'Angular', 'Vue', 'Ember', 'Backbone']
+    backend_languages = ['Python', 'Ruby', 'PHP', 'Node.js', 'Java', 'C#', 'Go', 'Scala', 'Kotlin']
+    blockchain_languages = ['Solidity', 'Rust', 'C++', 'Vyper', 'Huff', 'Go (Golang)', 'Chaincode']
     
     for lang in frontend_languages:
         if re.search(rf'\b{lang}\b', text, re.IGNORECASE):
@@ -50,6 +50,10 @@ def analyze_freelancer(text):
             blockchain_languages_known.append(lang)
             skills.add(lang)
             rating += 1.5
+    
+    for skill in soft_skills:
+        if re.search(rf'\b{skill}\b', text, re.IGNORECASE):
+            rating += 0.2
     
     if skills.intersection(frontend_languages) and skills.intersection(backend_languages):
         job_title = "Fullstack Developer"
@@ -83,7 +87,7 @@ def analyze_freelancer(text):
     return list(skills), job_title, total_experience_years, rating
 
 if __name__ == "__main__":
-    file_path_or_url = "https://www.everbuild.pro/wp-content/uploads/wpforms/946-07b67c26f764cc6be3b22e721ea31a5c/Eric-Wong-Full-Stack-Blockchain-Engineer-96cda2163268575a98297a19e3d4da0c.pdf"  # Replace with your PDF file path or URL
+    file_path_or_url = "https://www.everbuild.pro/wp-content/uploads/wpforms/946-07b67c26f764cc6be3b22e721ea31a5c/Eric-Wong-Full-Stack-Blockchain-Engineer-96cda2163268575a98297a19e3d4da0c.pdf"
     text = extract_text_from_pdf(file_path_or_url)
     
     if text:
