@@ -96,7 +96,7 @@ def analyze_freelancer(text):
     
     rating = min(10, rating)
     
-    if len(skills) == 0 or total_experience_years < 2 or len(soft_skills) == 0:
+    if len(skills) == 0 and total_experience_years < 2 and len(soft_skills) < 1:
         recommendation = "Reject application"
         feedback.append("Insufficient skills, experience, or soft skills.")
     else:
@@ -105,7 +105,7 @@ def analyze_freelancer(text):
     return list(skills), job_title, total_experience_years, rating, recommendation, feedback
 
 if __name__ == "__main__":
-    file_path_or_url = "path/to/your/pdf/file.pdf"  # Replace with your PDF file path or URL
+    file_path_or_url = "https://www.everbuild.pro/wp-content/uploads/wpforms/946-07b67c26f764cc6be3b22e721ea31a5c/Ajdin_Salihovic_CV-0c0e11fa81275ef42093761d50bad311.pdf"  # Replace with your PDF file path or URL
     text = extract_text_from_pdf(file_path_or_url)
     
     if text:
