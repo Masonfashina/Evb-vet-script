@@ -5,16 +5,12 @@ import io
 import nltk
 from nltk.tokenize import word_tokenize
 
-# Download the NLTK punkt package for tokenization, only if not already downloaded
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
-
-# ... (rest of your code remains the same)
+# Download the punkt tokenizer
+nltk.download('punkt', quiet=True)
 
 def extract_text_from_pdf(file_path_or_url):
     text = ""
+    
     if file_path_or_url.startswith('http'):
         response = requests.get(file_path_or_url)
         if response.status_code == 200:
@@ -38,85 +34,89 @@ def analyze_freelancer(text):
     job_title = ""
     total_experience_years = 0
     rating = 0
-    rejection_reasons = []
-
-    frontend_languages = ['HTML', 'CSS', 'JavaScript', 'React', 'Angular', 'Vue', 'TypeScript' 'Next.js' 'NextJs']
-    backend_languages = ['Python', 'Ruby', 'PHP', 'Node.js', 'Java', 'C#', 'Go',]
+    feedback = []
+    
+    frontend_languages = ['HTML', 'CSS', 'JavaScript', 'React', 'Angular', 'Vue', 'NextJS', 'Redux']
+    backend_languages = ['Python', 'Ruby', 'PHP', 'Node.js', 'Java', 'C#', 'Go']
     blockchain_languages = ['Solidity', 'Rust', 'C++', 'Vyper', 'Huff', 'Go (Golang)']
-    soft_skills_list = ['communication', 'teamwork', 'problem-solving', 'adaptability', 'accountability', 'remote']
-
-    # Tokenize the text for better matching
+    certifications = ['AWS Certified', 'Certified Ethical Hacker', 'Google Associate Cloud Engineer', 'Microsoft Certified', 'Cisco Certified']
+    
+    # Tokenize the text for NLP analysis
     tokens = word_tokenize(text.lower())
-
-    for lang in frontend_languages:
-        if lang.lower() in tokens:
-            skills.add(lang)
-            rating += 1
-    
-    for lang in backend_languages:
-        if lang.lower() in tokens:
-            skills.add(lang)
-            rating += 1
-    
-    for lang in blockchain_languages:
-        if lang.lower() in tokens:
-            skills.add(lang)
-            rating += 1.5
+    soft_skills_list = ['teamwork', 'communication', 'problem-solving', 'leadership', 'adaptability']
     
     for skill in soft_skills_list:
         if skill in tokens:
             soft_skills.add(skill.capitalize())
             rating += 0.5
+    
+    for cert in certifications:
+        if re.search(rf'\b{cert}\b', text, re.IGNORECASE):
+            feedback.append(f"Has certification: {cert}")
+            rating += 1
+    
+    for lang in frontend_languages:
+        if re.search(rf'\b{lang}\b', text, re.IGNORECASE):
+            skills.add(lang)
+            rating += 0.5
+    
+    for lang in backend_languages:
+        if re.search(rf'\b{lang}\b', text, re.IGNORECASE):
+            skills.add(lang)
+            rating += 1
+    
+    for lang in blockchain_languages:
+        if re.search(rf'\b{lang}\b', text, re.IGNORECASE):
+            skills.add(lang)
+            rating += 1.5
+    
+    if skills.intersection(frontend_languages) and skills.intersection(backend_languages):
+        job_title = "Fullstack Developer"
+        rating += 2
+    elif skills.intersection(frontend_languages):
+        job_title = "Frontend Developer"
+        rating += 1
+    elif skills.intersection(backend_languages):
+        job_title = "Backend Developer"
+        rating += 1
+    
+    experience_match = re.search(r'(\d+)\s*(?:around|about|over|more than)?[+~><]*\s*year', text, re.IGNORECASE)
 
-    experience_match = re.search(r'(\d+)[+~><]* year', text, re.IGNORECASE)
     if experience_match:
         experience_str = experience_match.group(1)
         if experience_str.isnumeric():
             total_experience_years = int(experience_str)
-
-    if total_experience_years >= 2:
+    
+    if total_experience_years >= 7:
+        rating += 3
+    elif total_experience_years >= 4:
+        rating += 2
+    elif total_experience_years >= 1:
         rating += 1
-    else:
-        rejection_reasons.append("Less than 2 years of experience.")
-
-    if len(soft_skills) >= 1:
-        rating += 1
-    else:
-        rejection_reasons.append("Less than 1 soft skill detected.")
-
-    if len(skills) == 0:
-        rejection_reasons.append("No technical skills detected.")
-
+    
     rating = min(10, rating)
-
-    if skills:
-        if skills.intersection(frontend_languages) and skills.intersection(backend_languages):
-            job_title = "Fullstack Developer"
-        elif skills.intersection(frontend_languages):
-            job_title = "Frontend Developer"
-        elif skills.intersection(backend_languages):
-            job_title = "Backend Developer"
-        elif skills.intersection(blockchain_languages):
-            job_title = "Blockchain Developer"
-
-    recommendation = "Accept into Everbuild talent pool."
-    if len(rejection_reasons) == 3:
-        recommendation = f"Reject application. Reasons: {', '.join(rejection_reasons)}"
-
-    return list(skills), list(soft_skills), job_title, total_experience_years, rating, recommendation
+    
+    if len(skills) == 0 or total_experience_years < 2 or len(soft_skills) < 1:
+        recommendation = "Reject application"
+        feedback.append("Insufficient skills, experience, or soft skills.")
+    else:
+        recommendation = "Accept into Everbuild talent pool"
+    
+    return list(skills), job_title, total_experience_years, rating, recommendation, feedback
 
 if __name__ == "__main__":
-    file_path_or_url = "https://www.everbuild.pro/wp-content/uploads/wpforms/946-07b67c26f764cc6be3b22e721ea31a5c/Dwayne_Campbell_Senior_Software_Engineer.docx-a3acfd956c9619e6326b977f2d921f7f.pdf"  # Replace with your PDF file path or URL
+    file_path_or_url = "https://www.everbuild.pro/wp-content/uploads/wpforms/946-07b67c26f764cc6be3b22e721ea31a5c/Ajdin_Salihovic_CV-0c0e11fa81275ef42093761d50bad311.pdf"  # Replace with your PDF file path or URL
     text = extract_text_from_pdf(file_path_or_url)
     
     if text:
-        skills, soft_skills, job_title, total_experience_years, rating, recommendation = analyze_freelancer(text)
+        skills, job_title, total_experience_years, rating, recommendation, feedback = analyze_freelancer(text)
         
-        print(f"Skills: {skills}")
-        print(f"Soft Skills: {soft_skills}")
+        print(f"Skills: {list(set(skills))}")
         print(f"Job Title: {job_title}")
         print(f"Total Years of Experience: {total_experience_years}")
         print(f"Rating: {rating}")
         print(f"Recommendation: {recommendation}")
+        if feedback:
+            print(f"Feedback: {', '.join(feedback)}")
     else:
         print("Failed to extract text from PDF.")
