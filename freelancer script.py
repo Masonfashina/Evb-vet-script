@@ -25,13 +25,15 @@ def extract_text_from_pdf(file_path_or_url):
 
 def analyze_freelancer(text):
     skills = set()
+    blockchain_languages_known = []
     job_title = ""
     total_experience_years = 0
     rating = 0
     
     frontend_languages = ['HTML', 'CSS', 'JavaScript', 'React', 'Angular', 'Vue']
     backend_languages = ['Python', 'Ruby', 'PHP', 'Node.js', 'Java', 'C#', 'Go']
-    blockchain_languages = ['Solidity', 'Rust', 'C++']
+    blockchain_languages = ['Solidity', 'Rust', 'C++', 'Vyper', 'Huff', 'Go (Golang)']
+
     
     for lang in frontend_languages:
         if re.search(rf'\b{lang}\b', text, re.IGNORECASE):
@@ -45,6 +47,7 @@ def analyze_freelancer(text):
     
     for lang in blockchain_languages:
         if re.search(rf'\b{lang}\b', text, re.IGNORECASE):
+            blockchain_languages_known.append(lang)
             skills.add(lang)
             rating += 1.5
     
@@ -58,8 +61,8 @@ def analyze_freelancer(text):
         job_title = "Backend Developer"
         rating += 1
     
-    if skills.intersection(blockchain_languages):
-        job_title += " / Blockchain/Solidity/Smart Contract Developer"
+    if blockchain_languages_known:
+        job_title += f" / Blockchain Developer ({', '.join(blockchain_languages_known)})"
         rating += 3
     
     experience_match = re.search(r'(\d+)[+~><]* year', text, re.IGNORECASE)
