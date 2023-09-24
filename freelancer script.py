@@ -24,55 +24,83 @@ def extract_text_from_pdf(file_path_or_url):
     return text
 
 def analyze_freelancer(text):
-    skills = []
+    skills = set()
+    stacks = set()
     job_title = ""
     experience_level = ""
-    stacks = []
+    total_experience_years = 0
+    final_rating = 0
     
-    # Analyzing skills
-    frontend_skills = re.findall(r'react|angular|vue', text, re.IGNORECASE)
-    backend_skills = re.findall(r'node\.?js|django|python', text, re.IGNORECASE)
-    web3_skills = re.findall(r'web\s*3|blockchain|smart\s*contract', text, re.IGNORECASE)
+    # Skill Rating
+    skill_rating = 0
+    if re.search(r'react', text, re.IGNORECASE):
+        skills.add("React")
+        skill_rating += 10
+    if re.search(r'node\.?js', text, re.IGNORECASE):
+        skills.add("Node.js")
+        skill_rating += 10
+    if re.search(r'blockchain', text, re.IGNORECASE):
+        skills.add("Blockchain")
+        skill_rating += 20
+    if re.search(r'web3', text, re.IGNORECASE):
+        skills.add("Web3")
+        skill_rating += 20
     
-    if frontend_skills:
-        stacks.append("Front-end Developer")
-        skills.extend(frontend_skills)
-        
-    if backend_skills:
-        stacks.append("Back-end Developer")
-        skills.extend(backend_skills)
-        
-    if web3_skills:
-        stacks.append("Web3 / Blockchain / Smart Contract Developer")
-        skills.extend(web3_skills)
+    # Stack Rating
+    stack_rating = 0
+    if skill_rating >= 30:
+        stacks.add("Full Stack Developer")
+        stack_rating += 20
+    elif skill_rating >= 20:
+        stacks.add("Web3 / Blockchain / Smart Contract Developer")
+        stack_rating += 15
+    elif skill_rating >= 10:
+        stacks.add("Front-end or Back-end Developer")
+        stack_rating += 10
     
-    # Analyzing job title
+    # Job Title Rating
+    job_title_rating = 0
     if re.search(r'junior\s*developer|entry\s*level', text, re.IGNORECASE):
         job_title = "Junior Developer"
+        job_title_rating += 5
     elif re.search(r'senior\s*developer|lead\s*developer', text, re.IGNORECASE):
         job_title = "Senior Developer"
+        job_title_rating += 15
     else:
         job_title = "Mid-level Developer"
+        job_title_rating += 10
         
-    # Analyzing experience
-    experience_years = re.findall(r'(\d+)\s*years?', text)
+    # Experience Rating
+    experience_rating = 0
+    experience_years = re.findall(r'(\d+)\s*years?\s*experience', text, re.IGNORECASE)
     experience_years = [int(year) for year in experience_years]
 
     if experience_years:
-        avg_experience = sum(experience_years) // len(experience_years)
-        
-        if avg_experience >= 7:
+        total_experience_years = sum(experience_years)
+    
+        if total_experience_years >= 7:
             experience_level = "Senior"
-        elif avg_experience >= 4:
+            experience_rating += 20
+        elif total_experience_years >= 4:
             experience_level = "Mid-level"
+            experience_rating += 15
         else:
             experience_level = "Junior"
+            experience_rating += 10
 
-        # Remove duplicate skills by converting the list to a set and back to a list
-    unique_skills = list(set([skill.lower() for skill in skills]))
+    # Final Rating
+    final_rating = skill_rating + stack_rating + job_title_rating + experience_rating
+    
+    # Acceptance Criteria
+    acceptance = "Reject"
+    if final_rating >= 60:
+        acceptance = "Strongly Accept"
+    elif final_rating >= 50:
+        acceptance = "Accept"
+    elif final_rating >= 40:
+        acceptance = "Consider"
 
-    return unique_skills, job_title, experience_level, stacks
-
+    return list(skills), list(stacks), job_title, experience_level, total_experience_years, final_rating, acceptance
 
 if __name__ == "__main__":
     # Replace this with your PDF file path or URL
@@ -81,11 +109,14 @@ if __name__ == "__main__":
     text = extract_text_from_pdf(file_path_or_url)
     
     if text:
-        skills, job_title, experience_level, stacks = analyze_freelancer(text)
+        skills, stacks, job_title, experience_level, total_experience_years, final_rating, acceptance = analyze_freelancer(text)
         
         print(f"Skills: {skills}")
+        print(f"Stacks: {stacks}")
         print(f"Job Title: {job_title}")
         print(f"Experience Level: {experience_level}")
-        print(f"Stacks: {stacks}")
+        print(f"Total Years of Experience: {total_experience_years}")
+        print(f"Final Rating: {final_rating}")
+        print(f"Acceptance: {acceptance}")
     else:
         print("Failed to extract text from PDF.")
