@@ -30,56 +30,50 @@ def analyze_freelancer(text):
     total_experience_years = 0
     rating = 0
     
-    # Analyzing skills
-    frontend_skills = re.findall(r'(React|Angular|Vue\.js)', text, re.IGNORECASE)
-    backend_skills = re.findall(r'(Node\.js|Django|Python)', text, re.IGNORECASE)
-    blockchain_skills = re.findall(r'(Blockchain|Web3)', text, re.IGNORECASE)
+    frontend_languages = ['HTML', 'CSS', 'JavaScript', 'React', 'Angular', 'Vue']
+    backend_languages = ['Python', 'Ruby', 'PHP', 'Node.js', 'Java', 'C#', 'Go']
+    blockchain_languages = ['Solidity', 'Rust', 'C++']
     
-    for skill in frontend_skills:
-        skills.add(skill.lower().capitalize())
-    for skill in backend_skills:
-        skills.add(skill.lower().capitalize())
-    for skill in blockchain_skills:
-        skills.add(skill.lower().capitalize())
+    for lang in frontend_languages:
+        if re.search(rf'\b{lang}\b', text, re.IGNORECASE):
+            skills.add(lang)
     
-    # Analyzing job title and experience
-    years = re.findall(r'\b(19\d{2}|20\d{2})\b', text)
-    years = list(set([int(year) for year in years]))
+    for lang in backend_languages:
+        if re.search(rf'\b{lang}\b', text, re.IGNORECASE):
+            skills.add(lang)
     
-    if years:
-        total_experience_years = max(years) - min(years)
-        
-        if total_experience_years >= 7:
-            experience_level = "Senior"
-        elif total_experience_years >= 4:
-            experience_level = "Mid-level"
-        else:
-            experience_level = "Junior"
+    for lang in blockchain_languages:
+        if re.search(rf'\b{lang}\b', text, re.IGNORECASE):
+            skills.add(lang)
     
-    if frontend_skills:
-        job_title = "Frontend Developer"
-    if backend_skills:
-        job_title = "Backend Developer"
-    if frontend_skills and backend_skills:
+    if skills.intersection(frontend_languages) and skills.intersection(backend_languages):
         job_title = "Fullstack Developer"
-    if blockchain_skills:
+    elif skills.intersection(frontend_languages):
+        job_title = "Frontend Developer"
+    elif skills.intersection(backend_languages):
+        job_title = "Backend Developer"
+    elif skills.intersection(blockchain_languages):
         job_title = "Blockchain Developer"
     
-    # Rating calculation capped at 10
-    rating = min(10, len(skills) + (2 if experience_level == "Senior" else 1 if experience_level == "Mid-level" else 0))
+    experience_match = re.search(r'(\d+)[+~><]* year', text, re.IGNORECASE)
+    if experience_match:
+        experience_str = experience_match.group(1)
+        if experience_str.isnumeric():
+            total_experience_years = int(experience_str)
     
-    return list(skills), job_title, experience_level, total_experience_years, rating
+    rating = min(10, len(skills) + (3 if total_experience_years >= 7 else 2 if total_experience_years >= 4 else 1))
+    
+    return list(skills), job_title, total_experience_years, rating
 
 if __name__ == "__main__":
-    file_path_or_url = "https://www.everbuild.pro/wp-content/uploads/wpforms/946-07b67c26f764cc6be3b22e721ea31a5c/Cody-Lund-dcdc972b9744f152fbbf0b8d334c2085.pdf"  # Replace with your PDF file path or URL
+    file_path_or_url = "https://www.everbuild.pro/wp-content/uploads/wpforms/946-07b67c26f764cc6be3b22e721ea31a5c/Eric-Wong-Full-Stack-Blockchain-Engineer-96cda2163268575a98297a19e3d4da0c.pdf"  # Replace with your PDF file path or URL
     text = extract_text_from_pdf(file_path_or_url)
     
     if text:
-        skills, job_title, experience_level, total_experience_years, rating = analyze_freelancer(text)
+        skills, job_title, total_experience_years, rating = analyze_freelancer(text)
         
         print(f"Skills: {list(set(skills))}")
         print(f"Job Title: {job_title}")
-        print(f"Experience Level: {experience_level}")
         print(f"Total Years of Experience: {total_experience_years}")
         print(f"Rating: {rating}")
         
