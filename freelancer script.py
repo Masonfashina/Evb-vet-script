@@ -5,12 +5,10 @@ import io
 import nltk
 from nltk.tokenize import word_tokenize
 
-# Download the punkt tokenizer
 nltk.download('punkt', quiet=True)
 
 def extract_text_from_pdf(file_path_or_url):
     text = ""
-    
     if file_path_or_url.startswith('http'):
         response = requests.get(file_path_or_url)
         if response.status_code == 200:
@@ -21,11 +19,9 @@ def extract_text_from_pdf(file_path_or_url):
     else:
         with open(file_path_or_url, 'rb') as f:
             pdf_reader = PyPDF2.PdfReader(f)
-    
     for page_num in range(len(pdf_reader.pages)):
         page = pdf_reader.pages[page_num]
         text += page.extract_text()
-        
     return text
 
 def analyze_freelancer(text):
@@ -36,12 +32,11 @@ def analyze_freelancer(text):
     rating = 0
     feedback = []
     
-    frontend_languages = ['HTML', 'CSS', 'JavaScript', 'React', 'Angular', 'Vue', 'NextJS', 'Redux']
+    frontend_languages = ['HTML', 'CSS', 'JavaScript', 'React', 'Angular', 'Vue', 'NextJS']
     backend_languages = ['Python', 'Ruby', 'PHP', 'Node.js', 'Java', 'C#', 'Go']
     blockchain_languages = ['Solidity', 'Rust', 'C++', 'Vyper', 'Huff', 'Go (Golang)']
     certifications = ['AWS Certified', 'Certified Ethical Hacker', 'Google Associate Cloud Engineer', 'Microsoft Certified', 'Cisco Certified']
     
-    # Tokenize the text for NLP analysis
     tokens = word_tokenize(text.lower())
     soft_skills_list = ['teamwork', 'communication', 'problem-solving', 'leadership', 'adaptability']
     
@@ -80,8 +75,7 @@ def analyze_freelancer(text):
         job_title = "Backend Developer"
         rating += 1
     
-    experience_match = re.search(r'(\d+)\s*(?:around|about|over|more than)?[+~><]*\s*year', text, re.IGNORECASE)
-
+    experience_match = re.search(r'(\d+)[+~><]* (?:over|about|around)* year', text, re.IGNORECASE)
     if experience_match:
         experience_str = experience_match.group(1)
         if experience_str.isnumeric():
@@ -98,14 +92,13 @@ def analyze_freelancer(text):
     
     if len(skills) == 0 and total_experience_years < 2 and len(soft_skills) < 1:
         recommendation = "Reject application"
-        feedback.append("Insufficient skills, experience, or soft skills.")
     else:
         recommendation = "Accept into Everbuild talent pool"
     
     return list(skills), job_title, total_experience_years, rating, recommendation, feedback
 
 if __name__ == "__main__":
-    file_path_or_url = "https://www.everbuild.pro/wp-content/uploads/wpforms/946-07b67c26f764cc6be3b22e721ea31a5c/Ajdin_Salihovic_CV-0c0e11fa81275ef42093761d50bad311.pdf"  # Replace with your PDF file path or URL
+    file_path_or_url = "https://www.everbuild.pro/wp-content/uploads/wpforms/946-07b67c26f764cc6be3b22e721ea31a5c/Frank-Bloch_CV-416623e7e5f8929efdbf7ba352edbbf8.pdf"
     text = extract_text_from_pdf(file_path_or_url)
     
     if text:
