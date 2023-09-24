@@ -98,7 +98,7 @@ def analyze_freelancer(text):
     return list(skills), job_title, total_experience_years, rating, recommendation, feedback
 
 if __name__ == "__main__":
-    file_path_or_url = "path/to/your/pdf/file.pdf"
+    file_path_or_url = "https://www.everbuild.pro/wp-content/uploads/wpforms/946-07b67c26f764cc6be3b22e721ea31a5c/Frank-Bloch_CV-416623e7e5f8929efdbf7ba352edbbf8.pdf"
     text = extract_text_from_pdf(file_path_or_url)
     
     if text:
