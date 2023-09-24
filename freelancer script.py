@@ -26,7 +26,6 @@ def extract_text_from_pdf(file_path_or_url):
 def analyze_freelancer(text):
     skills = set()
     job_title = ""
-    experience_level = ""
     total_experience_years = 0
     rating = 0
     
@@ -37,23 +36,31 @@ def analyze_freelancer(text):
     for lang in frontend_languages:
         if re.search(rf'\b{lang}\b', text, re.IGNORECASE):
             skills.add(lang)
+            rating += 0.5
     
     for lang in backend_languages:
         if re.search(rf'\b{lang}\b', text, re.IGNORECASE):
             skills.add(lang)
+            rating += 1
     
     for lang in blockchain_languages:
         if re.search(rf'\b{lang}\b', text, re.IGNORECASE):
             skills.add(lang)
+            rating += 1.5
     
     if skills.intersection(frontend_languages) and skills.intersection(backend_languages):
         job_title = "Fullstack Developer"
+        rating += 2
     elif skills.intersection(frontend_languages):
         job_title = "Frontend Developer"
+        rating += 1
     elif skills.intersection(backend_languages):
         job_title = "Backend Developer"
-    elif skills.intersection(blockchain_languages):
-        job_title = "Blockchain Developer"
+        rating += 1
+    
+    if skills.intersection(blockchain_languages):
+        job_title += " / Blockchain/Solidity/Smart Contract Developer"
+        rating += 3
     
     experience_match = re.search(r'(\d+)[+~><]* year', text, re.IGNORECASE)
     if experience_match:
@@ -61,7 +68,14 @@ def analyze_freelancer(text):
         if experience_str.isnumeric():
             total_experience_years = int(experience_str)
     
-    rating = min(10, len(skills) + (3 if total_experience_years >= 7 else 2 if total_experience_years >= 4 else 1))
+    if total_experience_years >= 7:
+        rating += 3
+    elif total_experience_years >= 4:
+        rating += 2
+    elif total_experience_years >= 1:
+        rating += 1
+    
+    rating = min(10, rating)
     
     return list(skills), job_title, total_experience_years, rating
 
