@@ -2,10 +2,16 @@ import re
 import PyPDF2
 import requests
 import io
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+
+# Download necessary NLTK data
+nltk.download('punkt')
+nltk.download('stopwords')
 
 def extract_text_from_pdf(file_path_or_url):
     text = ""
-    
     if file_path_or_url.startswith('http'):
         response = requests.get(file_path_or_url)
         if response.status_code == 200:
@@ -25,48 +31,46 @@ def extract_text_from_pdf(file_path_or_url):
 
 def analyze_freelancer(text):
     skills = set()
-    blockchain_languages_known = []
+    soft_skills = set()
     job_title = ""
     total_experience_years = 0
     rating = 0
-    soft_skills = ['communication', 'teamwork', 'problem-solving', 'leadership', 'adaptability']
     
-    frontend_languages = ['HTML', 'CSS', 'JavaScript', 'React', 'Angular', 'Vue', 'Ember', 'Backbone']
-    backend_languages = ['Python', 'Ruby', 'PHP', 'Node.js', 'Java', 'C#', 'Go', 'Scala', 'Kotlin']
-    blockchain_languages = ['Solidity', 'Rust', 'C++', 'Vyper', 'Huff', 'Go (Golang)', 'Chaincode']
+    # Tokenize the text
+    words = word_tokenize(text.lower())
+    filtered_words = [word for word in words if word not in stopwords.words('english')]
     
-    for lang in frontend_languages:
-        if re.search(rf'\b{lang}\b', text, re.IGNORECASE):
-            skills.add(lang)
+    frontend_languages = ['html', 'css', 'javascript', 'react', 'angular', 'vue']
+    backend_languages = ['python', 'ruby', 'php', 'node.js', 'java', 'c#', 'go']
+    blockchain_languages = ['solidity', 'rust', 'c++', 'vyper', 'huff', 'go']
+    identified_soft_skills = ['communication', 'teamwork', 'problem-solving', 'leadership']
+    
+    for word in filtered_words:
+        if word in frontend_languages:
+            skills.add(word.capitalize())
+            rating += 0.5
+        if word in backend_languages:
+            skills.add(word.capitalize())
+            rating += 1
+        if word in blockchain_languages:
+            skills.add(word.capitalize())
+            rating += 1.5
+        if word in identified_soft_skills:
+            soft_skills.add(word.capitalize())
             rating += 0.5
     
-    for lang in backend_languages:
-        if re.search(rf'\b{lang}\b', text, re.IGNORECASE):
-            skills.add(lang)
-            rating += 1
-    
-    for lang in blockchain_languages:
-        if re.search(rf'\b{lang}\b', text, re.IGNORECASE):
-            blockchain_languages_known.append(lang)
-            skills.add(lang)
-            rating += 1.5
-    
-    for skill in soft_skills:
-        if re.search(rf'\b{skill}\b', text, re.IGNORECASE):
-            rating += 0.2
-    
-    if skills.intersection(frontend_languages) and skills.intersection(backend_languages):
+    if skills.intersection(set(frontend_languages)) and skills.intersection(set(backend_languages)):
         job_title = "Fullstack Developer"
         rating += 2
-    elif skills.intersection(frontend_languages):
+    elif skills.intersection(set(frontend_languages)):
         job_title = "Frontend Developer"
         rating += 1
-    elif skills.intersection(backend_languages):
+    elif skills.intersection(set(backend_languages)):
         job_title = "Backend Developer"
         rating += 1
     
-    if blockchain_languages_known:
-        job_title += f" / Blockchain Developer ({', '.join(blockchain_languages_known)})"
+    if skills.intersection(set(blockchain_languages)):
+        job_title += " / Blockchain Developer"
         rating += 3
     
     experience_match = re.search(r'(\d+)[+~><]* year', text, re.IGNORECASE)
@@ -84,16 +88,17 @@ def analyze_freelancer(text):
     
     rating = min(10, rating)
     
-    return list(skills), job_title, total_experience_years, rating
+    return list(skills), list(soft_skills), job_title, total_experience_years, rating
 
 if __name__ == "__main__":
-    file_path_or_url = "https://www.everbuild.pro/wp-content/uploads/wpforms/946-07b67c26f764cc6be3b22e721ea31a5c/Eric-Wong-Full-Stack-Blockchain-Engineer-96cda2163268575a98297a19e3d4da0c.pdf"
+    file_path_or_url = "https://www.everbuild.pro/wp-content/uploads/wpforms/946-07b67c26f764cc6be3b22e721ea31a5c/Resume-Matthew-Hicks-2023-13b46b1c590c9630ebcc342909b3a79f.pdf"  # Replace with your PDF file path or URL
     text = extract_text_from_pdf(file_path_or_url)
     
     if text:
-        skills, job_title, total_experience_years, rating = analyze_freelancer(text)
+        skills, soft_skills, job_title, total_experience_years, rating = analyze_freelancer(text)
         
-        print(f"Skills: {list(set(skills))}")
+        print(f"Skills: {skills}")
+        print(f"Soft Skills: {soft_skills}")
         print(f"Job Title: {job_title}")
         print(f"Total Years of Experience: {total_experience_years}")
         print(f"Rating: {rating}")
