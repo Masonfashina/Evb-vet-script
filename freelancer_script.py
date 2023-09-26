@@ -34,7 +34,7 @@ def analyze_freelancer(text):
     
     frontend_languages = ['HTML', 'CSS', 'JavaScript', 'React', 'Angular', 'Vue', 'NextJS']
     backend_languages = ['Python', 'Ruby', 'PHP', 'Node.js', 'Java', 'C#', 'Go']
-    blockchain_languages = ['Solidity', 'Rust', 'C++', 'Vyper', 'Huff', 'Go (Golang)']
+    blockchain_languages = ['Solidity', 'Rust', 'C++', 'Vyper', 'Huff', 'Go (Golang)', 'web3.js', 'hardhat']
     certifications = ['AWS Certified', 'Certified Ethical Hacker', 'Google Associate Cloud Engineer', 'Microsoft Certified', 'Cisco Certified']
     
     tokens = word_tokenize(text.lower())
@@ -65,15 +65,29 @@ def analyze_freelancer(text):
             skills.add(lang)
             rating += 1.5
     
+        # ... (previous code remains the same)
+
     if skills.intersection(frontend_languages) and skills.intersection(backend_languages):
         job_title = "Fullstack Developer"
+        if skills.intersection(blockchain_languages):
+            job_title += " & Blockchain Developer"
         rating += 2
     elif skills.intersection(frontend_languages):
         job_title = "Frontend Developer"
+        if skills.intersection(blockchain_languages):
+            job_title += " & Blockchain Developer"
         rating += 1
     elif skills.intersection(backend_languages):
         job_title = "Backend Developer"
+        if skills.intersection(blockchain_languages):
+            job_title += " & Blockchain Developer"
         rating += 1
+    elif skills.intersection(blockchain_languages):
+        job_title = "Blockchain Developer"
+        rating += 1
+
+    # ... (rest of the code remains the same)
+
     
     experience_match = re.search(r'(\d+)[+~><]* (?:over|about|around)* year', text, re.IGNORECASE)
     if experience_match:
@@ -98,7 +112,7 @@ def analyze_freelancer(text):
     return list(skills), job_title, total_experience_years, rating, recommendation, feedback
 
 if __name__ == "__main__":
-    file_path_or_url = "https://www.everbuild.pro/wp-content/uploads/wpforms/946-07b67c26f764cc6be3b22e721ea31a5c/Frank-Bloch_CV-416623e7e5f8929efdbf7ba352edbbf8.pdf"
+    file_path_or_url = "https://www.everbuild.pro/wp-content/uploads/wpforms/946-07b67c26f764cc6be3b22e721ea31a5c/sufyan-aslam-0775f806818231ddd5609ffce73a7e48.pdf"
     text = extract_text_from_pdf(file_path_or_url)
     
     if text:
